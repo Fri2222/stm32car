@@ -108,7 +108,7 @@ void PWM_Init(void)
   * 注意事项：CCR和ARR共同决定占空比，此函数仅设置CCR的值，并不直接是占空比
   *           占空比Duty = CCR / (ARR + 1)
   */
-void PWM_1_SetCompare3(uint16_t Compare)
+void PWM_1_SetCompare1(uint16_t Compare)
 {
 	TIM_SetCompare1(TIM2, Compare);		//设置CCR3的值
 }
@@ -119,7 +119,7 @@ void PWM_1_SetCompare3(uint16_t Compare)
   * 注意事项：CCR和ARR共同决定占空比，此函数仅设置CCR的值，并不直接是占空比
   *           占空比Duty = CCR / (ARR + 1)
   */
-void PWM_2_SetCompare3(uint16_t Compare)
+void PWM_2_SetCompare1(uint16_t Compare)
 {
 	TIM_SetCompare1(TIM3, Compare);		//设置CCR3的值
 }
