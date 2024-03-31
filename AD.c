@@ -1,5 +1,7 @@
 #include "stm32f10x.h"                  // Device header
 #include "Motor.h"
+#include <stdlib.h>
+
 extern uint16_t AD_Value[5];
 
 /**
@@ -103,54 +105,29 @@ float Quantize(uint16_t adc_value)
 int16_t adjustMotorSpeed(void) 
 {
 	int Speed;
-    const float THRESHOLD = 500;  // 阈值
+	int difference = AD_Value[0] - AD_Value[4];
+	int THRESHOLD = 120;
 
-    if (AD_Value[0] > THRESHOLD&& AD_Value[4] <= THRESHOLD) 
-	{ 
-		Speed = AD_Value[0]/1000;
-        Motor_Left_Forward_SetSpeed(Speed);
-		Motor_Right_Forward_SetSpeed(Speed+10);
-
-    }
-    if (AD_Value[4] > THRESHOLD&& AD_Value[0] <= THRESHOLD) 
+	if (abs(difference) <= THRESHOLD) 
 	{
-		Speed = AD_Value[4]/1000;
-		Motor_Right_Forward_SetSpeed(Speed);
-		Motor_Left_Forward_SetSpeed(Speed+10);
-    }
-	if(AD_Value[0] > THRESHOLD && AD_Value[4] > THRESHOLD)
-	{
-		if(AD_Value[0] > AD_Value[4]) 
-		{
-			Speed =(AD_Value[0] - AD_Value[4])/50;
-			Motor_Left_Forward_SetSpeed(Speed);
-			Motor_Right_Forward_SetSpeed(Speed);
-		}
-		else 
-		{
-			Speed =(AD_Value[4] - AD_Value[0])/500;
-			Motor_Left_Forward_SetSpeed(Speed);
-			Motor_Right_Forward_SetSpeed(Speed);
-
-		}
+		Speed = 20;
+		Motor_Left_Forward_SetSpeed(15);
+		Motor_Right_Forward_SetSpeed(18);
 	}
-	if(AD_Value[0] <= THRESHOLD && AD_Value[4] <= THRESHOLD)
+	else 
 	{
-		if(AD_Value[0] > AD_Value[4]) 
+		if (difference > 0) 
 		{
-			Speed =(AD_Value[0] - AD_Value[4])*3;
-			Motor_Left_Forward_SetSpeed(Speed);
-			Motor_Right_Forward_SetSpeed(Speed - 50);
+			Speed = difference / 20;
+			Motor_Left_Forward_SetSpeed(30);
+			Motor_Right_Forward_SetSpeed(25);
 		}
 		else 
 		{
-			Speed =(AD_Value[4] - AD_Value[0])*3;
-			
-			Motor_Left_Forward_SetSpeed(Speed);
-			Motor_Right_Forward_SetSpeed(Speed - 50);
-
+			Speed = difference / 20;
+			Motor_Left_Forward_SetSpeed(25);
+			Motor_Right_Forward_SetSpeed(30);
 		}
-
 	}
 	return Speed;
 }
