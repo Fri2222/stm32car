@@ -102,15 +102,13 @@ float Quantize(uint16_t adc_value)
   * 返 回 值：无
   * 注意 事项 :阈值为500
   */
-int16_t adjustMotorSpeed(void) 
+void adjustMotorSpeed(void) 
 {
-	int Speed;
 	int difference = AD_Value[0] - AD_Value[4];
 	int THRESHOLD = 120;
 
 	if (abs(difference) <= THRESHOLD) 
 	{
-		Speed = 20;
 		Motor_Left_Forward_SetSpeed(15);
 		Motor_Right_Forward_SetSpeed(18);
 	}
@@ -118,16 +116,13 @@ int16_t adjustMotorSpeed(void)
 	{
 		if (difference > 0) 
 		{
-			Speed = difference / 20;
 			Motor_Left_Forward_SetSpeed(30);
 			Motor_Right_Forward_SetSpeed(25);
 		}
 		else 
 		{
-			Speed = difference / 20;
 			Motor_Left_Forward_SetSpeed(25);
 			Motor_Right_Forward_SetSpeed(30);
 		}
 	}
-	return Speed;
 }
