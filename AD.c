@@ -1,7 +1,13 @@
 #include "stm32f10x.h"                  // Device header
 #include "Motor.h"
 #include <stdlib.h>
-
+/*
+AD_Value[0]是后侧左方红外
+AD_Value[1]是中间左侧红外
+AD_Value[2]是前方中间红外
+AD_Value[3]是中间后侧红外
+AD_Value[4]是后侧右方红外
+*/
 extern uint16_t AD_Value[5];
 
 /**
@@ -96,33 +102,4 @@ float Quantize(uint16_t adc_value)
 
     return quantized_value;
 }
-/**
-  * 函    数：调整电机速度
-  * 参    数：无（AD_Value是全局函数）
-  * 返 回 值：无
-  * 注意 事项 :阈值为500
-  */
-void adjustMotorSpeed(void) 
-{
-	int difference = AD_Value[0] - AD_Value[4];
-	int THRESHOLD = 120;
 
-	if (abs(difference) <= THRESHOLD) 
-	{
-		Motor_Left_Forward_SetSpeed(15);
-		Motor_Right_Forward_SetSpeed(18);
-	}
-	else 
-	{
-		if (difference > 0) 
-		{
-			Motor_Left_Forward_SetSpeed(30);
-			Motor_Right_Forward_SetSpeed(25);
-		}
-		else 
-		{
-			Motor_Left_Forward_SetSpeed(25);
-			Motor_Right_Forward_SetSpeed(30);
-		}
-	}
-}

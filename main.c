@@ -8,7 +8,9 @@
 #include "Motor.h"
 #include "AD.h"
 #include "Encoder.h"
+#include "Control.h"
 int16_t Speed;
+
 int main(void)
 {
 	
@@ -16,25 +18,25 @@ int main(void)
 	OLED_Init();				//OLED初始化
 	/*显示静态字符串*/
 	OLED_ShowString(1, 1, "Spd:");
-	OLED_ShowString(2, 1, "AD1:");
-	OLED_ShowString(3, 1, "AD3:");
+	OLED_ShowString(2, 1, "AD0:");
+	OLED_ShowString(3, 1, "AD4:");
 	OLED_ShowString(4, 1, "AD2`:");
 	
 	PWM_Init();
 	AD_Init();					//AD初始化
-	Encoder_Init_TIM4(1040 - 1,1-1);		//传入参数为自动重装值和预分频数
+	Encoder_Init_TIM4(1040 - 1,1 - 1);		//传入参数为自动重装值和预分频数
 								//	TIM_TimeBaseInitStructure.TIM_Period = 65536 - 1; 计数周期，即ARR的值
 								//	TIM_TimeBaseInitStructure.TIM_Prescaler = 1 - 1;预分频器，即PSC的值
 	Motor_Init();
 
-	Speed = 1;
+
 	//uint16_t i;
 	while (1)
 	{
 //		Speed = (Read_Encoder_TIM4()/1.04);
-		OLED_ShowSignedNum(1, 5, Speed, 5);			//显示转换结果第4个数据
-		OLED_ShowNum(2, 5, Quantize(AD_Value[1])*100, 5);		//显示转换结果第1个数据
-		OLED_ShowNum(3, 5, Quantize(AD_Value[3])*100, 5);		//显示转换结果第2个数据
+		OLED_ShowSignedNum(1, 5, Read_Encoder_TIM4(), 5);			//显示转换结果第4个数据
+		OLED_ShowNum(2, 5, Quantize(AD_Value[0])*100, 5);		//显示转换结果第1个数据
+		OLED_ShowNum(3, 5, Quantize(AD_Value[4])*100, 5);		//显示转换结果第2个数据
 		OLED_ShowNum(4, 5, Quantize(AD_Value[2])*100, 5);		//显示转换结果第3个数据
 
 
