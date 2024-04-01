@@ -1,5 +1,5 @@
 #include "Control.h"	
-float Position_KP=0.5,Position_KI=0.001,Position_KD=0.5;  //PID系数
+float Position_KP=0.6,Position_KI=0.001,Position_KD=0.5;  //PID系数
 float Velocity_KP=150,Velocity_KI=20,Velocity_KD=150; //PID系数
 extern uint16_t AD_Value[5];
 /**
@@ -13,11 +13,33 @@ void adjustMotorSpeed(void)
 	int difference_2 = 1000 - AD_Value[2];
 	uint16_t AD_2 = AD_Value[2];
 	int difference_0_4 = AD_Value[0] - AD_Value[4];
-	int THRESHOLD = 300;
+	int THRESHOLD = 500;
 	if (difference_2 <= 300)
+		{
+			Motor_Left_Forward_SetSpeed(15);
+			Motor_Right_Forward_SetSpeed(19);
+		}
+	else if (abs(difference_0_4) >= THRESHOLD)
+		{
+			if (difference_0_4 > 0 )
+			{
+				// 左右轮速度根据 PID 控制差值进行调整
+				int PWM = Position_PID(AD_2, 1000);
+				Motor_Left_Forward_SetSpeed(PWM);
+				Motor_Right_Forward_SetSpeed(16);
+			}
+			else
+			{
+				// 左右轮速度根据 PID 控制差值进行调整
+				int PWM = Position_PID(AD_2, 1000);
+				Motor_Right_Forward_SetSpeed(PWM);
+				Motor_Left_Forward_SetSpeed(16);
+			}
+		}
+	else if(difference_2 > 300 && (AD_Value[0]>700) && (AD_Value[4]>700))
 	{
-		Motor_Left_Forward_SetSpeed(16);
-		Motor_Right_Forward_SetSpeed(18);
+		Motor_Left_Stop();
+		Motor_Right_Forward_SetSpeed(16);
 	}
 	else 
 	{
@@ -26,21 +48,6 @@ void adjustMotorSpeed(void)
 		Motor_Right_Forward_SetSpeed(16);
 	}
 
-	if (abs(difference_0_4) >= THRESHOLD) 
-	{
-		if(difference_0_4 > 0 )
-		{
-			int PWM = Position_PID (AD_2,1000);
-			Motor_Left_Forward_SetSpeed(PWM);
-			Motor_Right_Forward_SetSpeed(16);
-		}
-		else 
-		{
-			int PWM = Position_PID (AD_2,1000);
-			Motor_Right_Forward_SetSpeed(PWM);
-			Motor_Left_Forward_SetSpeed(16);
-		}
-	}
 }
 /**************************************************************************
 函数功能：增量PI控制器

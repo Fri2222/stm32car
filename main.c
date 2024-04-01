@@ -41,7 +41,7 @@ int main(void)
 
 
 		adjustMotorSpeed();		
-		Delay_ms(10);							//延时100ms，手动增加一些转换的间隔时间
+		Delay_ms(1);							//延时100ms，手动增加一些转换的间隔时间
 	}
 
 }
