@@ -1,7 +1,26 @@
 #include "Control.h"	
-float Position_KP=0.6,Position_KI=0.001,Position_KD=0.5;  //PID系数
+float Position_KP=0.7,Position_KI=0.001,Position_KD=0.5;  //PID系数
 float Velocity_KP=150,Velocity_KI=20,Velocity_KD=150; //PID系数
+uint16_t left_turn_flag = 0; // 标志是否执行左转
+uint16_t right_turn_flag = 0; // 标志是否执行右转
+uint32_t start_time = 0; // 记录开始时间
 extern uint16_t AD_Value[5];
+/**
+  * 函    数：在十字处停车
+  * 参    数：无
+  * 返 回 值：无
+  * 注意 事项 :
+  */
+void crossStop(void)
+{
+	uint16_t AD_1 = AD_Value[1];
+	uint16_t AD_3 = AD_Value[3];
+	if((AD_1 == 1000 )&&(AD_3  == 1000))
+	{
+		Motor_Left_Stop();
+		Motor_Right_Stop();
+	}
+}
 /**
   * 函    数：调整电机速度
   * 参    数：无（AD_Value是全局函数）
@@ -10,42 +29,51 @@ extern uint16_t AD_Value[5];
   */
 void adjustMotorSpeed(void) 
 {
-	int difference_2 = 1000 - AD_Value[2];
-	uint16_t AD_2 = AD_Value[2];
-	int difference_0_4 = AD_Value[0] - AD_Value[4];
-	int THRESHOLD = 500;
-	if (difference_2 <= 300)
+	uint16_t AD_2 = Quantize_0(AD_Value[2]);
+	uint16_t AD_1 = Quantize_0(AD_Value[1]);
+	uint16_t AD_3 = Quantize_0(AD_Value[3]);
+	uint16_t AD_0 = Quantize_0(AD_Value[0]);
+	uint16_t AD_4 = Quantize_0(AD_Value[4]);
+	int PWM_2 = Position_PID(AD_2, 1);
+	int PWM_1 = Position_PID(AD_1, 0);
+	int PWM_3 = Position_PID(AD_3, 0);
+	if (AD_2 == 1 && AD_1 == 1)
 		{
-			Motor_Left_Forward_SetSpeed(15);
-			Motor_Right_Forward_SetSpeed(19);
+			Motor_Left_Stop();
+			Motor_Right_Stop();
 		}
-	else if (abs(difference_0_4) >= THRESHOLD)
-		{
-			if (difference_0_4 > 0 )
-			{
-				// 左右轮速度根据 PID 控制差值进行调整
-				int PWM = Position_PID(AD_2, 1000);
-				Motor_Left_Forward_SetSpeed(PWM);
-				Motor_Right_Forward_SetSpeed(16);
-			}
-			else
-			{
-				// 左右轮速度根据 PID 控制差值进行调整
-				int PWM = Position_PID(AD_2, 1000);
-				Motor_Right_Forward_SetSpeed(PWM);
-				Motor_Left_Forward_SetSpeed(16);
-			}
-		}
-	else if(difference_2 > 300 && (AD_Value[0]>700) && (AD_Value[4]>700))
+	else if(AD_2 == 1)
 	{
-		Motor_Left_Stop();
-		Motor_Right_Forward_SetSpeed(16);
+		Motor_Left_Forward_SetSpeed(15);
+        Motor_Right_Forward_SetSpeed(17);
 	}
-	else 
+	else if(AD_2 == 0)
 	{
-		int PWM = Position_PID (AD_2,1000);
-		Motor_Left_Forward_SetSpeed(PWM);
-		Motor_Right_Forward_SetSpeed(16);
+		if(AD_2 == 0 && AD_1 == 1)
+		{
+			Motor_Right_Forward_SetSpeed(PWM_1);
+			Motor_Left_Forward_SetSpeed(15);
+		}
+		else if (AD_2 == 0 && AD_2 == 1)
+		{
+			Motor_Right_Forward_SetSpeed(PWM_3);
+			Motor_Left_Forward_SetSpeed(15);
+		}
+		else if(AD_2 == 0 && AD_4 == 1)
+		{
+			Motor_Left_Forward_SetSpeed(PWM_2);
+			Motor_Right_Forward_SetSpeed(15);
+		}
+		else if(AD_2 == 0 && AD_3 == 1)
+		{
+			Motor_Right_Forward_SetSpeed(PWM_2);
+			Motor_Left_Forward_SetSpeed(15);
+		}
+		else if(AD_2 == 0 && AD_3 == 0 && AD_1 == 0)
+		{
+			Motor_Right_Forward_SetSpeed(15);
+			Motor_Left_Forward_SetSpeed(15);
+		}
 	}
 
 }
@@ -100,4 +128,34 @@ int Position_PID (uint16_t AD_0,uint16_t target)
 	if(Pwm<-10)
 		Pwm=-10;
 	 return Pwm;                                            //增量输出
+}
+/**
+  * 函    数：量化ADC转化后的模拟量的值为二进制0或1
+  * 参    数：ADC的值
+  * 返 回 值：量化后的二进制值，0或1
+  * 注意 事项 :小于5V时返回0，大于5V时返回1
+  */
+uint8_t Quantize_0(uint16_t adc_value)
+{
+    const uint16_t THRESHOLD = 2048;  // 阈值，对应5V
+    return (adc_value >= THRESHOLD) ? 1 : 0;
+}
+/**
+  * 函    数：量化ADC转化后的模拟量的值为二进制0或1
+  * 参    数：ADC的值
+  * 返 回 值：量化后的二进制值，0或1
+  * 注意 事项 :小于5V时返回0，大于5V时返回1
+  */
+void Offset(void)
+{
+	uint16_t AD_2 = Quantize_0(AD_Value[2]);
+	uint16_t AD_1 = Quantize_0(AD_Value[1]);
+	uint16_t AD_3 = Quantize_0(AD_Value[3]);
+	uint16_t AD_0 = Quantize_0(AD_Value[0]);
+	uint16_t AD_4 = Quantize_0(AD_Value[4]);
+	if(AD_2 == 0 && AD_3 == 0 && AD_1 == 0)
+	{
+		left_turn_flag = 1;
+		right_turn_flag = 0; 
+	}
 }

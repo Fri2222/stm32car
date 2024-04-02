@@ -11,4 +11,6 @@ extern uint16_t AD_Value[5];
 void adjustMotorSpeed(void);
 int Incremental_PI (int Encoder,int Target);
 int Position_PID (uint16_t AD_0,uint16_t target);
+void crossStop(void);
+uint8_t Quantize_0(uint16_t adc_value);
 #endif

@@ -17,10 +17,10 @@ int main(void)
 	/*模块初始化*/
 	OLED_Init();				//OLED初始化
 	/*显示静态字符串*/
-	OLED_ShowString(1, 1, "Spd:");
-	OLED_ShowString(2, 1, "AD0:");
-	OLED_ShowString(3, 1, "AD4:");
-	OLED_ShowString(4, 1, "AD2`:");
+	OLED_ShowString(1, 1, "AD2:");
+	OLED_ShowString(2, 1, "AD1:");
+	OLED_ShowString(3, 1, "AD3:");
+	OLED_ShowString(4, 1, "AD4:");
 	
 	PWM_Init();
 	AD_Init();					//AD初始化
@@ -28,20 +28,20 @@ int main(void)
 								//	TIM_TimeBaseInitStructure.TIM_Period = 65536 - 1; 计数周期，即ARR的值
 								//	TIM_TimeBaseInitStructure.TIM_Prescaler = 1 - 1;预分频器，即PSC的值
 	Motor_Init();
-
+	int PWM_2 = Position_PID(AD_Value[2], 1);
 
 	//uint16_t i;
 	while (1)
 	{
 //		Speed = (Read_Encoder_TIM4()/1.04);
-		OLED_ShowSignedNum(1, 5, Read_Encoder_TIM4(), 5);			//显示转换结果第4个数据
-		OLED_ShowNum(2, 5, Quantize(AD_Value[0])*100, 5);		//显示转换结果第1个数据
-		OLED_ShowNum(3, 5, Quantize(AD_Value[4])*100, 5);		//显示转换结果第2个数据
-		OLED_ShowNum(4, 5, Quantize(AD_Value[2])*100, 5);		//显示转换结果第3个数据
+		OLED_ShowNum(1, 7, Quantize_0_1(AD_Value[2]), 5);			//显示转换结果第4个数据
+		OLED_ShowNum(2, 7, Quantize_0_1(AD_Value[1]), 5);		//显示转换结果第1个数据
+		OLED_ShowNum(3, 7, Quantize_0_1(AD_Value[3]), 5);		//显示转换结果第2个数据
+		OLED_ShowNum(4, 8, Quantize_0_1(AD_Value[4]), 5);		//显示转换结果第3个数据
 
 
 		adjustMotorSpeed();		
-		Delay_ms(1);							//延时100ms，手动增加一些转换的间隔时间
+		Delay_us(100);							//延时100ms，手动增加一些转换的间隔时间
 	}
 
 }

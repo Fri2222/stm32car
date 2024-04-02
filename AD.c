@@ -103,3 +103,14 @@ float Quantize(uint16_t adc_value)
     return quantized_value;
 }
 
+/**
+  * 函    数：量化ADC转化后的模拟量的值为二进制0或1
+  * 参    数：ADC的值
+  * 返 回 值：量化后的二进制值，0或1
+  * 注意 事项 :小于5V时返回0，大于5V时返回1
+  */
+uint8_t Quantize_0_1(uint16_t adc_value)
+{
+    const uint16_t THRESHOLD = 2048;  // 阈值，对应5V
+    return (adc_value >= THRESHOLD) ? 1 : 0;
+}
