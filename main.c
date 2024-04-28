@@ -40,7 +40,9 @@ int main(void)
 		OLED_ShowNum(4, 8, Quantize_0_1(AD_Value[4]), 5);		//显示转换结果第3个数据
 
 
-		adjustMotorSpeed();		
+		//adjustMotorSpeed();		
+		Motor_Left_Forward_SetSpeed(15);
+        Motor_Right_Forward_SetSpeed(17);
 		Delay_us(100);							//延时100ms，手动增加一些转换的间隔时间
 	}
 

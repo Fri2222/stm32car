@@ -37,7 +37,7 @@ void adjustMotorSpeed(void)
 	int PWM_2 = Position_PID(AD_2, 1);
 	int PWM_1 = Position_PID(AD_1, 0);
 	int PWM_3 = Position_PID(AD_3, 0);
-	if (AD_2 == 1 && AD_1 == 1)
+	if (AD_3 == 1 && AD_1 == 1)
 		{
 			Motor_Left_Stop();
 			Motor_Right_Stop();

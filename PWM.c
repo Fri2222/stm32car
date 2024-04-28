@@ -7,8 +7,8 @@
 #define PWM_1_Port 				GPIOA
 #define PWM_1_Pin			 	GPIO_Pin_0
 #define PWM_1_Clock				RCC_APB2Periph_GPIOA
-#define PWM_2_Port 				GPIOA
-#define PWM_2_Pin			 	GPIO_Pin_6
+#define PWM_2_Port 				GPIOB
+#define PWM_2_Pin			 	GPIO_Pin_0
 #define PWM_2_Clock				RCC_APB2Periph_GPIOA
 void PWM_1_Init(void)
 {	
@@ -54,7 +54,7 @@ void PWM_1_Init(void)
 void PWM_2_Init(void)
 {
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
     
     // 输出 PWM 波时使用的是内部时钟
     TIM_InternalClockConfig(TIM3);
@@ -74,7 +74,7 @@ void PWM_2_Init(void)
     
     // 配置 PWM_2_Pin 引脚
     GPIO_InitStruct.GPIO_Pin = PWM_2_Pin;
-    GPIO_Init(GPIOA, &GPIO_InitStruct);
+    GPIO_Init(GPIOB, &GPIO_InitStruct);
     
     
     // 初始化比较通道
@@ -85,8 +85,8 @@ void PWM_2_Init(void)
     TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
     TIM_OCInitStruct.TIM_Pulse = 50; // CCR 要结合 ARR 计算占空比
     
-    // 配置 TIM3 的第一个输出通道（TIM_OC1）到 PWM_2_Pin 引脚
-    TIM_OC1Init(TIM3, &TIM_OCInitStruct);
+    // 配置 TIM3 的第3个输出通道（TIM_OC3）到 PWM_2_Pin 引脚
+    TIM_OC3Init(TIM3, &TIM_OCInitStruct);
     
     TIM_Cmd(TIM3, ENABLE);
 }
@@ -121,7 +121,7 @@ void PWM_1_SetCompare1(uint16_t Compare)
   */
 void PWM_2_SetCompare1(uint16_t Compare)
 {
-	TIM_SetCompare1(TIM3, Compare);		//设置CCR3的值
+	TIM_SetCompare3(TIM3, Compare);		//设置CCR3的值
 }
 
 
