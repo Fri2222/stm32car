@@ -9,7 +9,7 @@ AD_Value[3]是中间后侧红外
 AD_Value[4]是后侧右方红外
 */
 extern uint16_t AD_Value[5];
-
+extern uint16_t AD_Value_Number;
 /**
   * 函    数：AD初始化
   * 参    数：无
@@ -20,6 +20,8 @@ void AD_Init(void)
 	/*开启时钟*/
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);	//开启ADC1的时钟
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);	//开启GPIOA的时钟
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);	//开启GPIOB的时钟
+
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);		//开启DMA1的时钟
 	
 	/*设置ADC时钟*/
@@ -28,16 +30,25 @@ void AD_Init(void)
 	/*GPIO初始化*/
 	GPIO_InitTypeDef GPIO_InitStructure;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);					//将PA0、PA1、PA2、PA4和PA5引脚初始化为模拟输入
 	
+	
+	
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_1  | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
+
+	
+	//GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);					//将PA0、PA1、PA4和PA5引脚初始化为模拟输入
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);					//将PB0引脚初始化为模拟输入
+
 	/*规则组通道配置*/
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_1, 1, ADC_SampleTime_55Cycles5);	//规则组序列1的位置，配置为通道1
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_2, 2, ADC_SampleTime_55Cycles5);	//规则组序列2的位置，配置为通道2
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_3, 3, ADC_SampleTime_55Cycles5);	//规则组序列3的位置，配置为通道3
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 4, ADC_SampleTime_55Cycles5);	//规则组序列4的位置，配置为通道0
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 5, ADC_SampleTime_55Cycles5);	//规则组序列5的位置，配置为通道0
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_3, 2, ADC_SampleTime_55Cycles5);	//规则组序列2的位置，配置为通道3
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 3, ADC_SampleTime_55Cycles5);	//规则组序列3的位置，配置为通道4
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 4, ADC_SampleTime_55Cycles5);	//规则组序列4的位置，配置为通道5
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_8, 5, ADC_SampleTime_55Cycles5);	//规则组序列5的位置，配置为通道8
+
 
 	/*ADC初始化*/
 	ADC_InitTypeDef ADC_InitStructure;											//定义结构体变量
@@ -114,3 +125,19 @@ uint8_t Quantize_0_1(uint16_t adc_value)
     const uint16_t THRESHOLD = 2048;  // 阈值，对应5V
     return (adc_value >= THRESHOLD) ? 1 : 0;
 }
+/**
+  * 函    数：量化ADC转化后的模拟量的值为二进制0或1
+  * 参    数：ADC的值
+  * 返 回 值：量化后的二进制值，0或1
+  * 注意 事项 :小于5V时返回0，大于5V时返回1
+  */
+void Quantize_AD_Value_Number(void)
+{
+	AD_Value_Number = 0;
+	AD_Value_Number += Quantize_0_1(AD_Value[0]);
+	AD_Value_Number += Quantize_0_1(AD_Value[1])*10;
+	AD_Value_Number += Quantize_0_1(AD_Value[2])*100;
+	AD_Value_Number += Quantize_0_1(AD_Value[3])*1000;
+	AD_Value_Number += Quantize_0_1(AD_Value[4])*10000;
+}
+

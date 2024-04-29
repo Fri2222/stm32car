@@ -3,56 +3,70 @@
 #include "L298N.h"
 #include "Delay.h"
 #include "Buzzer.h"
+#include "MyDelay.h"
 #include "LightSensor.h"
 #include "PWM.h"
 #include "Motor.h"
 #include "AD.h"
 #include "Encoder.h"
 #include "Control.h"
+#include "delay.h"
+#include "sys.h"
+#include "mpu6050.h"  
+#include "inv_mpu.h"
+#include "inv_mpu_dmp_motion_driver.h" 
+#include "PID.h"
+int16_t Target_Left_Speed = -30;
+int16_t Target_Right_Speed = -30;
 int16_t Left_Speed;
 int16_t Right_Speed;
+int8_t Left_Flag;
+int8_t Right_Flag;
 int main(void)
-{
-	
+{	
+	int16_t Set_Left_Speed;
+	int16_t Set_Right_Speed;
+	float pitch,roll,yaw; 		//欧拉角
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	 //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
+	delay_init();	//延时初始化 
+	MPU_Init();					//初始化MPU6050
 	/*模块初始化*/
 	OLED_Init();				//OLED初始化
-	/*显示静态字符串*/
-	OLED_ShowString(1, 1, "Read1");
-	OLED_ShowString(2, 1, "Read2:");
-	OLED_ShowString(3, 1, "AD3:");
-	OLED_ShowString(4, 1, "AD4:");
-	
 	PWM_Init();
 	AD_Init();					//AD初始化
-	Encoder_Init(1040 - 1,1 - 1,1040 - 1,1 - 1);	//传入参数为自动重装值和预分频数
-													//	TIM_TimeBaseInitStructure.TIM_Period = 65536 - 1; 计数周期，即ARR的值
-													//	TIM_TimeBaseInitStructure.TIM_Prescaler = 1 - 1;预分频器，即PSC的值
 	Motor_Init();
-	int PWM_2 = Position_PID(AD_Value[2], 1);
-
-	//uint16_t i;
-	while (1)
+	Encoder_Init(520 - 1,1 - 1,520 - 1,1 - 1);	//传入参数为自动重装值和预分频数
+	/*显示静态字符串*/
+	OLED_ShowString(1, 1, "yaw");
+	OLED_ShowString(2, 1, "En1:");
+	OLED_ShowString(3, 1, "En2:");
+	OLED_ShowString(4, 1, "AD:");
+	while(mpu_dmp_init())
 	{
-//		Speed = (Read_Encoder_TIM4()/1.04);
-		OLED_ShowNum(1, 7, Quantize_0_1(AD_Value[2]), 5);			//显示转换结果第4个数据
-		OLED_ShowNum(2, 7, Quantize_0_1(AD_Value[1]), 5);		//显示转换结果第1个数据
-		OLED_ShowNum(3, 7, Quantize_0_1(AD_Value[3]), 5);		//显示转换结果第2个数据
-		OLED_ShowNum(4, 8, Quantize_0_1(AD_Value[4]), 5);		//显示转换结果第3个数据
-
-
-		//adjustMotorSpeed();		
-		Motor_Left_Forward_SetSpeed(15);
-        Motor_Right_Forward_SetSpeed(15);
-			//Left_Speed = Read_Encoder_TIM4();
-		OLED_ShowNum(1, 8, Left_Speed, 5);	
-			//Right_Speed = Read_Encoder_TIM3();
-		OLED_ShowNum(2, 8, Right_Speed, 5);		//显示转换结果第3个数据
-
-
-		Delay_us(100);							//延时100ms，手动增加一些转换的间隔时间
+		delay_ms(10);
 	}
+	while(1)
+	{	
+		if(mpu_dmp_get_data(&pitch,&roll,&yaw)==0)
+		{
+			OLED_ShowSignedNum(1, 1, yaw, 8);
+		}
+		Quantize_AD_Value_Number();
+		OLED_ShowNum(4, 5, (int32_t)AD_Value_Number, 5);	
+
+		Set_Left_Speed = Incremental_PI(Left_Speed,Target_Left_Speed) ;
+		Set_Right_Speed = Incremental_PI(Right_Speed,Target_Right_Speed);
+		Motor_Left_Back_SetSpeed(Set_Left_Speed);
+		Motor_Right_Back_SetSpeed(Set_Right_Speed);
+
+		OLED_ShowSignedNum(2, 5, (int32_t)Set_Left_Speed, 5);	
+		OLED_ShowSignedNum(3, 5, (int32_t)Right_Speed, 5);	
+		delay_ms(50);	
+
+	} 	
 
 }
+
 /**
   * 函    数：TIM4中断函数
   * 参    数：无
@@ -68,7 +82,7 @@ void TIM4_IRQHandler(void)
 		Left_Speed = Read_Encoder_TIM4();								//每隔固定时间段读取一次编码器计数增量值，即为速度值
 		TIM_ClearITPendingBit(TIM4, TIM_IT_Update);			//清除TIM4更新事件的中断标志位
 															//中断标志位必须清除
-															//否则中断将连续不断地触发，导致主程序卡死
+		Left_Flag = 1;													//否则中断将连续不断地触发，导致主程序卡死
 	}
 }
 /**
@@ -86,6 +100,7 @@ void TIM3_IRQHandler(void)
 		Right_Speed = Read_Encoder_TIM3();								//每隔固定时间段读取一次编码器计数增量值，即为速度值
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);			//清除TIM3更新事件的中断标志位
 															//中断标志位必须清除
-															//否则中断将连续不断地触发，导致主程序卡死
+														//否则中断将连续不断地触发，导致主程序卡死
+		Right_Flag = 1;
 	}
 }

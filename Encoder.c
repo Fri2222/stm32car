@@ -17,7 +17,7 @@ void Encoder_Init_TIM4(u16 arr,u16 psc)
  
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7;	//PB6、PB7
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; //浮空输入
-	GPIO_Init(GPIOB, &GPIO_InitStructure);	//根据GPIO_InitStructure的参数初始化GPIOB0
+	GPIO_Init(GPIOB, &GPIO_InitStructure);	//根据GPIO_InitStructure的参数初始化GPIOB
 
 	TIM_TimeBaseStructure.TIM_Period = arr; //设定计数器自动重装值
 	TIM_TimeBaseStructure.TIM_Prescaler = psc; // 预分频器 
@@ -51,9 +51,9 @@ void Encoder_Init_TIM3(u16 arr,u16 psc)
   TIM_ICInitTypeDef TIM_ICInitStructure; //定义一个定时器编码器模式初始化的结构体
 	
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE); //使能TIM4时钟
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE); //使能CPIOB时钟
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE); //使能CPIOA时钟
  
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7;	//PB6、PB7
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7;	//PA6、PA7
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; //浮空输入
 	GPIO_Init(GPIOA, &GPIO_InitStructure);	//根据GPIO_InitStructure的参数初始化GPIOA
 
@@ -68,11 +68,11 @@ void Encoder_Init_TIM3(u16 arr,u16 psc)
 	TIM_ICInitStructure.TIM_ICFilter = 10;  //设置滤波器长度
 	TIM_ICInit(TIM3, &TIM_ICInitStructure); //根TIM_ICInitStructure参数初始化定时器TIM4编码器模式
 
-	TIM_Cmd(TIM3, ENABLE); //使能定时器4
+	TIM_Cmd(TIM3, ENABLE); //使能定时器3
 }
 
 //读取编码器计数
- int Read_Encoder_TIM3(void)
+int Read_Encoder_TIM3(void)
 {
 	int Encoder_TIM;
 	Encoder_TIM=TIM3->CNT; //读取计数
@@ -81,9 +81,4 @@ void Encoder_Init_TIM3(u16 arr,u16 psc)
 	TIM3->CNT=0; //读取完后计数清零
 	return Encoder_TIM; //返回值
 }
-
-
-
-
-
 

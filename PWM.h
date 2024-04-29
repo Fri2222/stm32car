@@ -6,4 +6,5 @@ void PWM_1_SetCompare1(uint16_t Compare);
 void PWM_2_SetCompare1(uint16_t Compare);
 void PWM_1_Init(void);
 void PWM_2_Init(void);
+void PWM_text_Init(void);
 #endif
