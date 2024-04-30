@@ -1,5 +1,5 @@
-#ifndef __TIMER_H
-#define __TIMER_H	
+#ifndef __ENCODER_H
+#define __ENCODER_H	
 #include "sys.h"
 #include "stm32f10x_tim.h"
 void Encoder_Init(u16 arr1,u16 psc1,u16 arr2,u16 psc2);

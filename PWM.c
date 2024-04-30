@@ -9,7 +9,7 @@
 #define PWM_1_Clock				RCC_APB2Periph_GPIOA
 #define PWM_2_Port 				GPIOB
 #define PWM_2_Pin			 	GPIO_Pin_0
-#define PWM_2_Clock				RCC_APB2Periph_GPIOA
+#define PWM_2_Clock				RCC_APB2Periph_GPIOB
 void PWM_1_Init(void)
 {	
 	//通用计时器2总线为APB1

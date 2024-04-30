@@ -47,9 +47,9 @@ int Position_PID (uint16_t position,uint16_t target)
 	 Pwm = Position_KP*Bias + Position_KI*Integral_bias + Position_KD*(Bias-Last_Bias);       //位置式PID控制器
 	 Last_Bias = Bias;                                       //保存上一次偏差 
 	
-	if(Pwm>50)
-		Pwm=50;
-	if(Pwm<-50)
-		Pwm=-50;
+	if(Pwm>12)
+		Pwm=12;
+	if(Pwm<-12)
+		Pwm=-12;
 	 return Pwm;                                            //增量输出
 }
