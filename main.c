@@ -17,17 +17,14 @@
 #include "inv_mpu_dmp_motion_driver.h" 
 #include "PID.h"
 #include "Timer.h"
-int16_t Target_Left_Speed = -10;
-int16_t Target_Right_Speed = -10;
-int16_t Left_Speed;
-int16_t Right_Speed;
-int8_t Left_Flag;
-int8_t Right_Flag;
-int8_t Target_Yaw_Position = 30;
+int16_t Left_PWM;
+int16_t Right_PWM;
+int8_t Target_Yaw_Position = 10;
 int main(void)
 {	
-	int16_t Set_Left_Speed;
-	int16_t Set_Right_Speed;
+	int16_t difference_1_3 ;
+	int16_t difference_0_4 ;
+
 	float pitch,roll,yaw; 		//欧拉角
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	 //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
 	delay_init();	//延时初始化 
@@ -42,34 +39,27 @@ int main(void)
 	/*显示静态字符串*/
 	OLED_ShowString(1, 1, "yaw");
 	OLED_ShowString(2, 1, "En1:");
-	OLED_ShowString(3, 1, "En2:");
-	OLED_ShowString(4, 1, "pos:");
-	while(mpu_dmp_init())
-	{
-		delay_ms(10);
-	}
+	OLED_ShowString(3, 1, "En2");
+	OLED_ShowString(4, 1, "AD:");
+//	while(mpu_dmp_init())
+//	{
+//		delay_ms(10);
+//	}
 	while(1)
 	{	
 		if(mpu_dmp_get_data(&pitch,&roll,&yaw)==0)
 		{
-			OLED_ShowSignedNum(1, 1, yaw, 8);
+			//OLED_ShowSignedNum(1, 1, yaw, 8);
 		}
 		Quantize_AD_Value_Number();
-		//OLED_ShowNum(4, 5, (int32_t)AD_Value_Number, 5);	
-
-		
-		Set_Left_Speed = Incremental_PI(Left_Speed,Target_Left_Speed) ;
-		Set_Right_Speed = Incremental_PI(Right_Speed,Target_Right_Speed);
-		Motor_Left_Back_SetSpeed(50);
-		Motor_Right_Back_SetSpeed(50);
-
-		OLED_ShowSignedNum(2, 5, (int32_t)Left_Speed, 5);	
-		OLED_ShowSignedNum(3, 5, (int32_t)Right_Speed, 5);	
-		
-		int16_t Position_PWM = Position_PID(yaw,Target_Yaw_Position);
-		OLED_ShowSignedNum(4, 5, (int32_t)Position_PWM, 5);	
-		delay_ms(50);	
-
+		OLED_ShowNum(4, 5, (int32_t)AD_Value_Number, 5);	
+		int16_t Position_PWM = Position_PID_Position(yaw,Target_Yaw_Position);
+		Trace(AD_Value_Number,AD_Value);
+		difference_1_3 = AD_Value_Difference_1_3();
+		difference_0_4 = AD_Value_Difference_0_4();
+		Trace_Line(difference_1_3,difference_0_4);
+		Trace_Set_Speed();
+		delay_ms(1);
 	} 	
 
 }
@@ -87,11 +77,9 @@ void TIM1_UP_IRQHandler(void)
 {
 	if (TIM_GetITStatus(TIM1, TIM_IT_Update) == SET)		//判断是否是TIM1的更新事件触发的中断
 	{
-		Left_Speed = Read_Encoder_TIM4();			//每隔固定时间段读取一次编码器计数增量值，减速比1：20，13轴的电机
-		Right_Speed = Read_Encoder_TIM3() ;			//每隔固定时间段读取一次编码器计数增量值，减速比1：20，13轴的电机
+		Left_PWM = Read_Encoder_TIM4() / 80;			//每隔固定时间段读取一次编码器计数增量值，减速比1：20，13轴的电机
+		Right_PWM = Read_Encoder_TIM3() / 80;			//每隔固定时间段读取一次编码器计数增量值，减速比1：20，13轴的电机
 		TIM_ClearITPendingBit(TIM1, TIM_IT_Update);			//清除TIM1更新事件的中断标志位
 															//中断标志位必须清除
-		Left_Flag = 1;													//否则中断将连续不断地触发，导致主程序卡死
-		Right_Flag = 1;												//否则中断将连续不断地触发，导致主程序卡死
 	}
 }

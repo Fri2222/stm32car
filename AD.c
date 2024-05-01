@@ -140,4 +140,13 @@ void Quantize_AD_Value_Number(void)
 	AD_Value_Number += Quantize_0_1(AD_Value[3])*1000;
 	AD_Value_Number += Quantize_0_1(AD_Value[4])*10000;
 }
-
+int16_t AD_Value_Difference_1_3(void)
+{
+	int16_t difference_1_3 = AD_Value[1] - AD_Value[3];
+	return difference_1_3;
+}
+int16_t AD_Value_Difference_0_4(void)
+{
+	int16_t difference_0_4 = AD_Value[0] - AD_Value[4];
+	return difference_0_4;
+}
